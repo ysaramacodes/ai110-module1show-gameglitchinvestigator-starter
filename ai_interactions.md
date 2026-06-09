@@ -11,6 +11,7 @@
 **What task did you give the agent?**
 
 <!-- Describe the goal you asked the agent to accomplish -->
+I wanted the agent to provide logic for the hint text for each difficulty.
 
 **What did the agent do?**
 
@@ -19,6 +20,7 @@
 **What did you have to verify or fix manually?**
 
 <!-- Describe anything the agent got wrong or that required human review -->
+The agent didn't define the string hint_text so before the if/elif/else block I initalized the string to an empty string to avoid a NameError and so when I call st.info(hint_text) I would not recieve any error.
 
 ---
 

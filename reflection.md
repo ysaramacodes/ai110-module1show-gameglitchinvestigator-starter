@@ -7,14 +7,26 @@ Answer each question in 3 to 5 sentences. Be specific and honest about what actu
 - What did the game look like the first time you ran it?
 - List at least two concrete bugs you noticed at the start  
   (for example: "the hints were backwards").
+  
+  1) The hints were backwards. For example if the secret is 60 and if I guess 75 it would output "Too High", "📈 Go HIGHER!". Instead it should output "Too High",  "📉 Go LOWER!". The error was on lines 38, 40 and 46,47
+
+  2) It wouldn't allow you to start a new game no matter if you won the previous game or lost.
+
+  It says guess a number between 1-100 for all difficulties.
+
+  The secret is the same across all difficulties which is wrong due to 
+
+  The attempts remaining counter is wrong causing the secret to be revealed with 1 attempt remaing and ends after 1 more attempt.
+
+  
 
 **Bug Reproduction Log**
 
 Document at least 3 bugs you found. Add rows as needed.
 
-| Input | Expected Behavior | Actual Behavior | Console Output / Error |
-|-------|-------------------|-----------------|------------------------|
-| | | | |
+| Input | Expected Behavior         | Actual Behavior           | Console Output / Error |
+|-------|---------------------------|---------------------------|------------------------|
+   75     "Too High",  "📉 Go LOWER!" "Too High", "📈 Go HIGHER!"  no error
 | | | | |
 | | | | |
 
@@ -31,6 +43,8 @@ Document at least 3 bugs you found. Add rows as needed.
 ## 3. Debugging and testing your fixes
 
 - How did you decide whether a bug was really fixed?
+I would rerun the app and I would check to see if I noticed the same error.
+
 - Describe at least one test you ran (manual or using pytest)  
   and what it showed you about your code.
 - Did AI help you design or understand any tests? How?

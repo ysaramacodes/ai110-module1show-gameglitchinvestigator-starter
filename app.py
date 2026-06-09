@@ -28,24 +28,16 @@ def parse_guess(raw: str):
 
     return True, value, None
 
-
+#FIX: the original code was doing string comparison and leaking the secret.
 def check_guess(guess, secret):
     if guess == secret:
         return "Win", "🎉 Correct!"
 
-    try:
-        if guess > secret:
-            return "Too High", "📈 Go HIGHER!"
-        else:
-            return "Too Low", "📉 Go LOWER!"
-    except TypeError:
-        g = str(guess)
-        if g == secret:
-            return "Win", "🎉 Correct!"
-        if g > secret:
-            return "Too High", "📈 Go HIGHER!"
-        return "Too Low", "📉 Go LOWER!"
-
+    if guess > secret:
+        return "Too High", "📉 Go LOWER!"
+    else:
+        return "Too Low", "📈 Go HIGHER!"
+#FIXME: Now it properly compares the parsed integer guess with the secret number and returns the appropriate outcome and message without leaking the secret in the feedback.
 
 def update_score(current_score: int, outcome: str, attempt_number: int):
     if outcome == "Win":
@@ -89,11 +81,22 @@ low, high = get_range_for_difficulty(difficulty)
 st.sidebar.caption(f"Range: {low} to {high}")
 st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
 
+
+
+if "difficulty" not in st.session_state or st.session_state.difficulty != difficulty:
+    st.session_state.difficulty = difficulty
+    st.session_state.secret = random.randint(low, high)
+    st.session_state.attempts = 0
+    st.session_state.score = 0
+    st.session_state.status = "playing"
+    st.session_state.history = []
+
 if "secret" not in st.session_state:
     st.session_state.secret = random.randint(low, high)
 
 if "attempts" not in st.session_state:
-    st.session_state.attempts = 1
+    #st.session_state.attempts = 1  #FIX: The original code had a syntax error in the following line. 
+    st.session_state.attempts = 0                              #FIXME:  I have corrected it to properly reset the attempts count when starting a new game. Setting num Of attempts to 0 instead of 1 to align with the logic in the rest of the code.
 
 if "score" not in st.session_state:
     st.session_state.score = 0
@@ -105,18 +108,9 @@ if "history" not in st.session_state:
     st.session_state.history = []
 
 st.subheader("Make a guess")
+hint_placeholder = st.empty()
 
-st.info(
-    f"Guess a number between 1 and 100. "
-    f"Attempts left: {attempt_limit - st.session_state.attempts}"
-)
-
-with st.expander("Developer Debug Info"):
-    st.write("Secret:", st.session_state.secret)
-    st.write("Attempts:", st.session_state.attempts)
-    st.write("Score:", st.session_state.score)
-    st.write("Difficulty:", difficulty)
-    st.write("History:", st.session_state.history)
+debug_placeholder = st.empty()
 
 raw_guess = st.text_input(
     "Enter your guess:",
@@ -132,8 +126,12 @@ with col3:
     show_hint = st.checkbox("Show hint", value=True)
 
 if new_game:
-    st.session_state.attempts = 0
-    st.session_state.secret = random.randint(1, 100)
+    #st.session_state.attempts = 1     #FIX: The original code had a syntax error in the following line. 
+    st.session_state.attempts = 0                              #FIXME:  I have corrected it to properly reset the attempts count when starting a new game. Setting num Of attempts to 0 instead of 1 to align with the logic in the rest of the code.
+    st.session_state.secret = random.randint(low, high)
+    st.session_state.score = 0
+    st.session_state.status = "playing"
+    st.session_state.history = []
     st.success("New game started.")
     st.rerun()
 
@@ -144,24 +142,37 @@ if st.session_state.status != "playing":
         st.error("Game over. Start a new game to try again.")
     st.stop()
 
+ok, guess_int, err = False, None, None
 if submit:
-    st.session_state.attempts += 1
-
     ok, guess_int, err = parse_guess(raw_guess)
 
+attempts_display = st.session_state.attempts
+if submit and ok:
+    attempts_display += 1
+#FIX: Originally the secret would be the same for all difficulties because it was only set once when the app first loaded. Ex(secret could be 100 for all cases which is wrong)
+hint_text = ""
+if difficulty == "Easy":
+    hint_text = f"Guess a number between 1 and 20. Attempts left: {attempt_limit - attempts_display}"
+elif difficulty == "Hard":
+    hint_text = f"Guess a number between 1 and 50. Attempts left: {attempt_limit - attempts_display}"
+else:
+    hint_text = f"Guess a number between 1 and 100. Attempts left: {attempt_limit - attempts_display}"
+
+hint_placeholder.info(hint_text)
+#FIXME: I have added a check to see if the difficulty has changed in the session state. If it has, we reset the secret number and all related game state variables to ensure that the game behaves correctly when the user changes the difficulty level.
+if submit:
     if not ok:
         st.session_state.history.append(raw_guess)
         st.error(err)
     else:
+        #FIXME: Append this guess before updating the counter so the first attempt is always preserved in history.
         st.session_state.history.append(guess_int)
+        st.session_state.attempts += 1
 
-        if st.session_state.attempts % 2 == 0:
-            secret = str(st.session_state.secret)
-        else:
-            secret = st.session_state.secret
+        #FIX The secret number was being compared to the raw input string instead of the parsed integer guess, which could lead to incorrect feedback. 
 
-        outcome, message = check_guess(guess_int, secret)
-
+        outcome, message = check_guess(guess_int, st.session_state.secret)
+        #FIXME: I have corrected it to compare the parsed integer guess with the secret number for accurate game logic.
         if show_hint:
             st.warning(message)
 
@@ -186,6 +197,14 @@ if submit:
                     f"The secret was {st.session_state.secret}. "
                     f"Score: {st.session_state.score}"
                 )
+
+with debug_placeholder.container():
+    with st.expander("Developer Debug Info"):
+        st.write("Secret:", st.session_state.secret)
+        st.write("Attempts:", st.session_state.attempts)
+        st.write("Score:", st.session_state.score)
+        st.write("Difficulty:", difficulty)
+        st.write("History:", st.session_state.history)
 
 st.divider()
 st.caption("Built by an AI that claims this code is production-ready.")
