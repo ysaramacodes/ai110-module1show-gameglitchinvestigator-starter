@@ -33,11 +33,15 @@ It wrote the code, ran away, and now the game is unplayable.
 
 Describe your fixed game in numbered steps so a reader can follow along without watching a video:
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+The secret is 35
+1. The user selects normal difficulty. The generated secret is 65
+2. The user enters 50.
+3. Returns "Too Low"
+4. The user enters 70.
+5. Returns "Too high"
+6. The score updates accordingly.
+7. The game ends when the user is out of turns or when the user guesses the secret correct.
+ 
 
 **Screenshot** *(optional)*: <!-- Insert a screenshot of your fixed, winning game here -->
 
@@ -46,7 +50,8 @@ Describe your fixed game in numbered steps so a reader can follow along without 
 ```
 # Paste your pytest output here, e.g.:
 # pytest tests/
-# ========================= X passed in 0.XXs =========================
+
+=========================================8 passed in 0.01s      ========================================
 ```
 
 ## 🚀 Stretch Features

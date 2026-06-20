@@ -1,5 +1,7 @@
 import random
 import streamlit as st
+from logic_utils import save_highscore, get_top_highscores
+from logic_utils import get_top_highscores, save_highscore
 
 def get_range_for_difficulty(difficulty: str):
     if difficulty == "Easy":
@@ -11,7 +13,7 @@ def get_range_for_difficulty(difficulty: str):
     return 1, 100
 
 
-def parse_guess(raw: str):
+def parse_guess(raw: str, low: int = None, high: int = None):
     if raw is None:
         return False, None, "Enter a guess."
 
@@ -25,6 +27,10 @@ def parse_guess(raw: str):
             value = int(raw)
     except Exception:
         return False, None, "That is not a number."
+
+    if low is not None and high is not None:
+        if value < low or value > high:
+            return False, value, f"Guess must be between {low} and {high}."
 
     return True, value, None
 
@@ -61,6 +67,17 @@ st.set_page_config(page_title="Glitchy Guesser", page_icon="🎮")
 st.title("🎮 Game Glitch Investigator")
 st.caption("An AI-generated guessing game. Something is off.")
 
+# Highscores (display top 5)
+st.sidebar.header("High Scores")
+top_scores = get_top_highscores(5)
+if top_scores:
+    for i, rec in enumerate(top_scores, start=1):
+        st.sidebar.write(f"{i}. {rec.get('name','Player')} — {rec.get('score',0)} ({rec.get('difficulty','?')})")
+else:
+    st.sidebar.write("No highscores yet.")
+
+st.sidebar.markdown("---")
+
 st.sidebar.header("Settings")
 
 difficulty = st.sidebar.selectbox(
@@ -80,6 +97,16 @@ low, high = get_range_for_difficulty(difficulty)
 
 st.sidebar.caption(f"Range: {low} to {high}")
 st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
+
+
+# Highscores (persisted to highscores.json)
+st.sidebar.header("Highscores")
+top_scores = get_top_highscores(difficulty=difficulty, limit=5)
+if top_scores:
+    for i, entry in enumerate(top_scores, start=1):
+        st.sidebar.write(f"{i}. {entry.get('name','Anonymous')} — {entry.get('score',0)} pts")
+else:
+    st.sidebar.write("No highscores yet. Win and save yours!")
 
 
 
@@ -144,7 +171,7 @@ if st.session_state.status != "playing":
 
 ok, guess_int, err = False, None, None
 if submit:
-    ok, guess_int, err = parse_guess(raw_guess)
+    ok, guess_int, err = parse_guess(raw_guess, low, high)
 
 attempts_display = st.session_state.attempts
 if submit and ok:
@@ -189,6 +216,19 @@ if submit:
                 f"You won! The secret was {st.session_state.secret}. "
                 f"Final score: {st.session_state.score}"
             )
+            # Automatically save the highscore (uses logic_utils.save_highscore)
+            try:
+                save_highscore("Player", st.session_state.score, difficulty)
+                st.sidebar.success("High score saved.")
+            except Exception:
+                # avoid breaking the UI if saving fails
+                st.sidebar.error("Could not save high score.")
+            with st.expander("Save your highscore"):
+                hs_name = st.text_input("Name to save:", key=f"hs_name_{difficulty}")
+                if st.button("Save Highscore", key=f"save_hs_{difficulty}"):
+                    save_highscore(hs_name or "Anonymous", st.session_state.score, difficulty)
+                    st.success("Highscore saved!")
+                    st.experimental_rerun()
         else:
             if st.session_state.attempts >= attempt_limit:
                 st.session_state.status = "lost"

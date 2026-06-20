@@ -26,24 +26,30 @@ Document at least 3 bugs you found. Add rows as needed.
 
 | Input | Expected Behavior         | Actual Behavior           | Console Output / Error |
 |-------|---------------------------|---------------------------|------------------------|
-   75     "Too High",  "📉 Go LOWER!" "Too High", "📈 Go HIGHER!"  no error
-| | | | |
-| | | | |
+   75     "Too High",  "📉 Go LOWER!" "Too High", "📈 Go HIGHER!" no error
+   -1     "Not in Range"              "Too low," "📉 Go LOWER!"   no error
+   35     "Too Low, "📈 Go HIGHER!"    "Too low," "📉 Go LOWER!"  no error
 
 ---
 
 ## 2. How did you use AI as a teammate?
 
 - Which AI tools did you use on this project (for example: ChatGPT, Gemini, Copilot)?
+ChatGPT and Claude.
+
 - Give one example of an AI suggestion that was correct (including what the AI suggested and how you verified the result).
-- Give one example of an AI suggestion that was incorrect or misleading (including what the AI suggested and how you verified the result).
+
+
+- Give one example of an AI suggestion that was incorrect or misleading (including what the AI suggested and how you verified the result). 
+
+I wanted the agent to provide logic for the hint text for each difficulty and the AI didnt initalize the string before the if/else if / else block which caused a NameError. Therefore I initalized the string before the if/else if/else block and then ran the code and I saw no NameError and no new errors
 
 ---
 
 ## 3. Debugging and testing your fixes
 
 - How did you decide whether a bug was really fixed?
-I would rerun the app and I would check to see if I noticed the same error.
+I would rerun the app and I would check to see if I noticed the same error and I would check to see if there is no other bug caused by the code change.
 
 - Describe at least one test you ran (manual or using pytest)  
   and what it showed you about your code.
@@ -60,6 +66,10 @@ I would rerun the app and I would check to see if I noticed the same error.
 ## 5. Looking ahead: your developer habits
 
 - What is one habit or strategy from this project that you want to reuse in future labs or projects?
-  - This could be a testing habit, a prompting strategy, or a way you used Git.
+  
+I would like to reuse asking AI to explain code that I don't know so I could understand what each function is doing ad how to fix it without AI.
+
+
+
 - What is one thing you would do differently next time you work with AI on a coding task?
 - In one or two sentences, describe how this project changed the way you think about AI generated code.
