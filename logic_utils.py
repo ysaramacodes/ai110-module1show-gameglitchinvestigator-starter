@@ -57,20 +57,22 @@ def check_guess(guess, secret):
 def update_score(current_score: int, outcome: str, attempt_number: int):
     """Update score based on outcome and attempt number."""
     if outcome == "Win":
-        points = 100 - 10 * (attempt_number + 1)
+        # first-attempt (attempt_number == 1) should be 100 points
+        points = 100 - 10 * (attempt_number - 1)
         if points < 10:
             points = 10
-        return current_score + points
+        new_score = current_score + points
+        return max(new_score, 0)
 
     if outcome == "Too High":
-        if attempt_number % 2 == 0:
-            return current_score + 5
-        return current_score - 5
+        new_score = current_score - 5
+        return max(new_score, 0)
 
     if outcome == "Too Low":
-        return current_score - 5
+        new_score = current_score - 5
+        return max(new_score, 0)
 
-    return current_score
+    return max(current_score, 0)
 
 
 # --- Highscore persistence helpers ---
@@ -100,15 +102,35 @@ def load_highscores(filepath: str = HIGHSCORE_FILE) -> List[Dict]:
 
 
 def save_highscore(name: str, score: int, difficulty: str, filepath: str = HIGHSCORE_FILE):
-    """Append a new highscore record and persist the sorted list to disk."""
+    """Persist a player's highscore but keep only their best per difficulty.
+
+    Behavior:
+    - If the player already has a record for the same difficulty, keep the higher score.
+    - Otherwise append a new record.
+    - Always sort descending by score before saving.
+    """
     records = load_highscores(filepath)
-    record = {
-        "name": name,
-        "score": score,
-        "difficulty": difficulty,
-        "timestamp": datetime.utcnow().isoformat(),
-    }
-    records.append(record)
+    name = (name or "Anonymous").strip()
+
+    # find existing record for this player+difficulty
+    replaced = False
+    for r in records:
+        if r.get("name") == name and r.get("difficulty") == difficulty:
+            # if existing score is lower, replace it; otherwise keep existing
+            if int(r.get("score", 0)) < int(score):
+                r["score"] = int(score)
+                r["timestamp"] = datetime.utcnow().isoformat()
+            replaced = True
+            break
+
+    if not replaced:
+        records.append({
+            "name": name,
+            "score": int(score),
+            "difficulty": difficulty,
+            "timestamp": datetime.utcnow().isoformat(),
+        })
+
     # keep records sorted descending by score
     records.sort(key=lambda r: r.get("score", 0), reverse=True)
     try:
@@ -152,13 +174,23 @@ def load_highscores():
 
 
 def save_highscore(name: str, score: int, difficulty: str):
-    """Append a highscore entry and persist top 10 scores.
-
-    Returns the updated highscores list.
-    """
+    """Persist a player's highscore (best-per-player-per-difficulty) and return updated list."""
     hs = load_highscores()
-    entry = {"name": name or "Anonymous", "score": int(score), "difficulty": difficulty, "ts": int(time.time())}
-    hs.append(entry)
+    name = (name or "Anonymous").strip()
+
+    # find existing entry for player+difficulty
+    found = False
+    for e in hs:
+        if e.get("name") == name and e.get("difficulty") == difficulty:
+            found = True
+            if int(e.get("score", 0)) < int(score):
+                e["score"] = int(score)
+                e["ts"] = int(time.time())
+            break
+
+    if not found:
+        hs.append({"name": name, "score": int(score), "difficulty": difficulty, "ts": int(time.time())})
+
     hs.sort(key=lambda e: e["score"], reverse=True)
     hs = hs[:10]
     try:
@@ -175,4 +207,5 @@ def get_top_highscores(difficulty: str = None, limit: int = 5):
     hs = load_highscores()
     if difficulty:
         hs = [e for e in hs if e.get("difficulty") == difficulty]
+    hs.sort(key=lambda e: e.get("score", 0), reverse=True)
     return hs[:limit]

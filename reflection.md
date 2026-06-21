@@ -14,11 +14,13 @@ It looked like a normal game until I started guessing then I noticed that the ga
 
   2) It wouldn't allow you to start a new game no matter if you won the previous game or lost.
 
-  It says guess a number between 1-100 for all difficulties.
+  3) It says guess a number between 1-100 for all difficulties.
 
-  The secret is the same across all difficulties.
+  4) The secret is the same across all difficulties.
 
-  The attempts remaining counter is wrong causing the secret to be revealed with 1 attempt remaing and ends after 1 more attempt.
+  5) The attempts remaining counter is wrong causing the secret to be revealed with 1 attempt remaing and ends after 1 more attempt.
+
+  6) I noticed that you could score negative points which doesn't make sense and if you guess the secret correct on your first attempt you would get 80 instead of 100.
 
   
 

@@ -1,7 +1,6 @@
 import random
 import streamlit as st
 from logic_utils import save_highscore, get_top_highscores
-from logic_utils import get_top_highscores, save_highscore
 
 def get_range_for_difficulty(difficulty: str):
     if difficulty == "Easy":
@@ -47,36 +46,27 @@ def check_guess(guess, secret):
 
 def update_score(current_score: int, outcome: str, attempt_number: int):
     if outcome == "Win":
-        points = 100 - 10 * (attempt_number + 1)
+        # first-attempt (attempt_number == 1) should be 100 points
+        points = 100 - 10 * (attempt_number - 1)
         if points < 10:
             points = 10
-        return current_score + points
+        new_score = current_score + points
+        return max(new_score, 0)
 
     if outcome == "Too High":
-        if attempt_number % 2 == 0:
-            return current_score + 5
-        return current_score - 5
+        new_score = current_score - 5
+        return max(new_score, 0)
 
     if outcome == "Too Low":
-        return current_score - 5
+        new_score = current_score - 5
+        return max(new_score, 0)
 
-    return current_score
+    return max(current_score, 0)
 
 st.set_page_config(page_title="Glitchy Guesser", page_icon="🎮")
 
 st.title("🎮 Game Glitch Investigator")
 st.caption("An AI-generated guessing game. Something is off.")
-
-# Highscores (display top 5)
-st.sidebar.header("High Scores")
-top_scores = get_top_highscores(5)
-if top_scores:
-    for i, rec in enumerate(top_scores, start=1):
-        st.sidebar.write(f"{i}. {rec.get('name','Player')} — {rec.get('score',0)} ({rec.get('difficulty','?')})")
-else:
-    st.sidebar.write("No highscores yet.")
-
-st.sidebar.markdown("---")
 
 st.sidebar.header("Settings")
 
@@ -99,9 +89,9 @@ st.sidebar.caption(f"Range: {low} to {high}")
 st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
 
 
-# Highscores (persisted to highscores.json)
+# Highscores (persisted to highscores.json) — show only top 1 score in sidebar
 st.sidebar.header("Highscores")
-top_scores = get_top_highscores(difficulty=difficulty, limit=5)
+top_scores = get_top_highscores(difficulty=difficulty, limit=1)
 if top_scores:
     for i, entry in enumerate(top_scores, start=1):
         st.sidebar.write(f"{i}. {entry.get('name','Anonymous')} — {entry.get('score',0)} pts")
